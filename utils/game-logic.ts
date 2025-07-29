@@ -1112,6 +1112,8 @@ export function generateMissions(canvasWidth: number, canvasHeight: number): Mis
       case "lone-wolf":
         name = `Lone Wolf: Deep Strike ${i + 1}`
         description = "A single fighter against overwhelming odds. High risk, high reward."
+        playerUnitLimit = 1
+        playerPilotLimit = 1
         enemyUnits = [
           createUnit(`Enemy-Bomber-${id}-1`, 700, 100, Math.PI, "enemy", "bomber"),
           createUnit(`Enemy-Bomber-${id}-2`, 700, 250, Math.PI, "enemy", "bomber"),

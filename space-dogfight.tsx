@@ -862,6 +862,19 @@ export default function SpaceDogfight() {
           m.id === updatedMission.id ? updatedMission : m,
         )
 
+        const currentMissionIndex = prev.campaignState.availableMissions.findIndex(
+            (m) => m.id === prev.campaignState!.currentMissionId,
+          )
+          if (currentMissionIndex !== -1) {
+            const currentMission = { ...prev.campaignState.availableMissions[currentMissionIndex] }
+            const updatedObjectives = currentMission.objectives.map((obj) => {
+              if (obj.type === "visit-multiple-zones-and-return") {
+                const visitObj = { ...obj } as VisitMultipleZonesAndReturnObjective // Create mutable copy
+                console.log(visitObj)
+              }
+            })
+          }
+
         return {
           ...prev,
           phase: "planning",
@@ -1174,13 +1187,13 @@ export default function SpaceDogfight() {
                       height: visitObj.escapeZone.height,
                     }
                     // Check if the unit's current position is within the escape zone
-                    const enteredEscapeZone = isPointInRectangle(scoutUnit, escapeZoneRect)
+                    const enteredEscapeZone = (scoutUnit.x < escapeZoneRect.x + escapeZoneRect.width && scoutUnit.y > escapeZoneRect.y && scoutUnit.y < escapeZoneRect.y + escapeZoneRect.height) ? true : false 
                     if (enteredEscapeZone) {
-                      visitObj.hasEscapedZone[scoutUnit.id] = true
-                      // Mark unit as escaped
-                      const unitIndex = finalUnitsAfterCombat.findIndex((u) => u.id === scoutUnit.id)
-                      if (unitIndex !== -1) {
-                        finalUnitsAfterCombat[unitIndex] = { ...finalUnitsAfterCombat[unitIndex], isEscaped: true }
+                      visitObj.hasEscapedZone = { ...visitObj.hasEscapedZone, [scoutUnit.id]: true }
+                      // Mark unit as escaped, NOT destroyed
+                      const escapedUnitIndex = newUnits.findIndex((u) => u.id === scoutUnit.id)
+                      if (escapedUnitIndex !== -1) {
+                        newUnits[escapedUnitIndex] = { ...newUnits[escapedUnitIndex], isEscaped: true }
                       }
                       console.log(`${scoutUnit.id} escaped mission.`)
                     }

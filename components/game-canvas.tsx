@@ -382,6 +382,33 @@ export function GameCanvas({
           }
         }
       }
+
+      // Draw Reached all Zone inidcator for Recon scout
+      if ((unit.unitType === "scout") && unit.team === "player" && currentMission) {
+        const visitMultipleObjective = currentMission.objectives.find((obj) => obj.type === "visit-multiple-zones-and-return") as 
+         | VisitMultipleZonesAndReturnObjective
+         | undefined
+
+        if (visitMultipleObjective) {
+          if (visitMultipleObjective.targetZones.every((zone) => visitMultipleObjective.hasVisitedZone[zone.id])) {
+            ctx.save()
+            ctx.beginPath()
+            ctx.arc(unit.x + 20, unit.y - 20, 5, 0, Math.PI * 2) // Small green circle
+            ctx.fillStyle = "#00ff00"
+            ctx.fill()
+            ctx.restore()
+          }
+          if (visitMultipleObjective.hasEscapedZone[unit.id]) {
+            ctx.save()
+            ctx.beginPath()
+            ctx.arc(unit.x + 20, unit.y - 10, 5, 0, Math.PI * 2) // Small blue circle for escaped
+            ctx.fillStyle = "#00bfff"
+            ctx.fill()
+            ctx.restore()
+          }
+        }
+      }
+
     })
   }, [units, selectedUnit, width, height, maxResolutionTicks, isPlanningPhase, asteroids, currentMission])
 

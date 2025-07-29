@@ -321,7 +321,7 @@ export function CampaignMissionPlanning({
                           )}
                           onClick={() => setSelectedUnitId(unit.id)}
                         >
-                          <span className="text-sm">
+                          <span className="text-sm text-primary-foreground">
                             {unit.id} ({getUnitTypeLabel(unit.unitType)})
                           </span>
                         </div>
@@ -348,7 +348,7 @@ export function CampaignMissionPlanning({
                           )}
                           onClick={() => setSelectedPilotId(pilot.id)}
                         >
-                          <span className="text-sm">
+                          <span className="text-sm text-primary-foreground">
                             {pilot.name} (Lvl {pilot.level})
                           </span>
                         </div>

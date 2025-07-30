@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useEffect, useRef } from "react"
 import type { Unit, Asteroid, Mission, DestroyUnitsObjective, ReachZoneAndReturnObjective, VisitMultipleZonesAndReturnObjective } from "../types/game"
-import { calculatePlannedPath } from "../utils/game-logic"
+import { calculatePlannedPath, getUnitPolygon } from "../utils/game-logic"
 
 interface GameCanvasProps {
   units: Unit[]
@@ -234,10 +234,18 @@ export function GameCanvas({
       ctx.setLineDash([])
 
       // Draw filled rectangle
-      ctx.fillRect(unit.x - 25, unit.y - 20, 50, 40)
-      // Draw border
-      ctx.strokeRect(unit.x - 25, unit.y - 20, 50, 40)
-
+      ctx.beginPath()
+      // Draw polygon based on points
+      let unitBox = getUnitPolygon(unit)
+      if (unitBox.length > 0) {
+        ctx.moveTo(unitBox[0].x, unitBox[0].y)
+        for (let i = 1; i < unitBox.length; i++) {
+          ctx.lineTo(unitBox[i].x, unitBox[i].y)
+        }
+        ctx.closePath()
+      }
+      ctx.fill()
+      ctx.stroke()
       ctx.restore()
     })
 

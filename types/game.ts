@@ -37,6 +37,7 @@ export interface Unit {
   burst: number // New: Number of attacks per fire action
   pilot: Pilot // Add pilot to unit
   maxStrain: number // Derived from pilot's Guts skill
+  size: number
 
   // Planning phase inputs
   plannedManeuver:
@@ -182,4 +183,16 @@ export interface GameState {
 export interface Vector2 {
   x: number
   y: number
+}
+
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface Rectangle {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }

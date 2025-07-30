@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import type { GameState, Unit, PilotSkills, GamePhase, MissionStatus, ReachZoneAndReturnObjective, VisitMultipleZonesAndReturnObjective } from "./types/game"
+import type { GameState, Unit, PilotSkills, GamePhase, 
+  MissionStatus, ReachZoneAndReturnObjective, 
+  VisitMultipleZonesAndReturnObjective, Point, Rectangle, } from "./types/game"
 import {
   updateUnitPosition,
   isInAttackRange,
@@ -26,6 +28,8 @@ import {
   generateAsteroids,
   calculatePlannedPath,
   isPointInRectangle,
+  CollisionDetector,
+  getUnitPolygon,
 } from "./utils/game-logic"
 import { GameCanvas } from "./components/game-canvas"
 import { PlanningPanel } from "./components/planning-panel"
@@ -918,6 +922,7 @@ export default function SpaceDogfight() {
         )
 
         // --- Asteroid Collision Detection and Damage ---
+        // TODO: change this to be per unit / unit box
         const unitCollisionRadius = 20 // Approximate half-width/height of unit for collision
         newUnits.forEach((unit, unitIndex) => {
           if (unit.isDestroyed || unit.isEscaped) return
@@ -929,8 +934,8 @@ export default function SpaceDogfight() {
             }
 
             // Simple circle-to-circle collision detection
-            const distance = getDistance(unit, asteroid)
-            if (distance < asteroid.radius + unitCollisionRadius) {
+            let collision_detected = CollisionDetector.polygonRectangleCollision(asteroid.points, getUnitPolygon(unit))
+            if (collision_detected) {
               // Collision detected!
               const damage = 10 * unit.speed
               console.log(`${unit.id} collided with ${asteroid.id} at speed ${unit.speed}, taking ${damage} damage.`)

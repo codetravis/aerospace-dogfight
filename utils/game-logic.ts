@@ -1,4 +1,6 @@
 import type {
+  Point,
+  Rectangle,
   Pilot,
   Unit,
   UnitType,
@@ -29,6 +31,7 @@ export function getUnitTypeStats(unitType: UnitType) {
         maxWeaponCharge: 15, // Fighter weapon charge
         damage: 25, // Fighter damage
         burst: 2, // Fighter burst value
+        size: 20,
       }
     case "bomber":
       return {
@@ -42,6 +45,7 @@ export function getUnitTypeStats(unitType: UnitType) {
         maxWeaponCharge: 40, // Bomber weapon charge
         damage: 50, // Bomber damage
         burst: 1, // Bomber burst value
+        size: 30,
       }
     case "interceptor":
       return {
@@ -55,6 +59,7 @@ export function getUnitTypeStats(unitType: UnitType) {
         maxWeaponCharge: 8, // Interceptor weapon charge
         damage: 7, // Interceptor damage
         burst: 3, // Interceptor burst value
+        size: 20,
       }
     case "scout":
       return {
@@ -68,6 +73,7 @@ export function getUnitTypeStats(unitType: UnitType) {
         maxWeaponCharge: 30,
         damage: 10,
         burst: 1,
+        size: 15,
       }
     case "heavy_fighter":
       return {
@@ -81,6 +87,7 @@ export function getUnitTypeStats(unitType: UnitType) {
         maxWeaponCharge: 15,
         damage: 25,
         burst: 3,
+        size: 25,
       }
   }
 }
@@ -155,6 +162,7 @@ export function createUnit(
     acceleration: 2, // This value is currently unused, but kept for consistency
     maxSpeed: stats.maxSpeed,
     speed: 1, // Default speed of 1 ship length
+    size: stats.size,
     team,
     unitType,
     weaponRange: stats.weaponRange,
@@ -702,9 +710,8 @@ export function simulateManeuverOutcome(
 
     // Check for asteroid collisions at each step of the simulation
     for (const asteroid of asteroids) {
-      const distanceToAsteroid = getDistance(tempUnit, asteroid)
-      if (distanceToAsteroid < asteroid.radius + UNIT_COLLISION_RADIUS) {
-        collidedWithAsteroid = true
+      collidedWithAsteroid = CollisionDetector.polygonRectangleCollision(asteroid.points, getUnitPolygon(tempUnit))
+      if (collidedWithAsteroid) {
         break // Collision detected, no need to check other asteroids for this tick
       }
     }
@@ -1463,4 +1470,112 @@ export function generateAsteroids(
     attempts++
   }
   return asteroids
+}
+
+export function getPointFromDistanceAndAngle(
+  startPoint: Point, 
+  distance: number, 
+  angleInDegrees: number
+): Point {
+  // Convert degrees to radians
+  const angleInRadians = (angleInDegrees * Math.PI) / 180;
+  
+  // Calculate the new coordinates
+  const newX = startPoint.x + distance * Math.cos(angleInRadians);
+  const newY = startPoint.y - distance * Math.sin(angleInRadians);
+  
+  return {
+    x: newX,
+    y: newY
+  };
+}
+
+export function getUnitPolygon( unit: Unit): Point[] {
+  let unitPolygon: Point[] = []
+  let unitPoint: Point = { x: unit.x, y: unit.y }
+  let midFront = getPointFromDistanceAndAngle( unitPoint, unit.size/2, unit.angle)
+  let frontRight = getPointFromDistanceAndAngle( midFront, unit.size / 2, unit.angle + 90)
+  let backRight = getPointFromDistanceAndAngle( frontRight, unit.size, unit.angle + 180)
+  let backLeft = getPointFromDistanceAndAngle( backRight, unit.size, unit.angle + 270)
+  let frontLeft = getPointFromDistanceAndAngle( backLeft, unit.size, unit.angle)
+  unitPolygon = [frontLeft, frontRight, backRight, backLeft]
+  return unitPolygon
+}
+
+export class CollisionDetector {
+  /**
+   * Check if an irregular polygon collides with a rectangle
+   * Uses Separating Axis Theorem (SAT) for accurate collision detection
+   */
+  static polygonRectangleCollision(polygon: Point[], rectangle: Point[]): boolean {
+
+    // Get all axes to test (normals to edges)
+    const axes = [
+      ...this.getAxes(polygon),
+      ...this.getAxes(rectangle)
+    ];
+
+    // Test projection on each axis
+    for (const axis of axes) {
+      const projection1 = this.projectPolygon(polygon, axis);
+      const projection2 = this.projectPolygon(rectangle, axis);
+
+      // Check for separation on this axis
+      if (!this.overlaps(projection1, projection2)) {
+        return false; // Separating axis found, no collision
+      }
+    }
+
+    return true; // No separating axis found, collision detected
+  }
+
+  /**
+   * Get perpendicular axes (normals) for each edge of the polygon
+   */
+  private static getAxes(polygon: Point[]): Point[] {
+    const axes: Point[] = [];
+    
+    for (let i = 0; i < polygon.length; i++) {
+      const current = polygon[i];
+      const next = polygon[(i + 1) % polygon.length];
+      
+      // Get edge vector
+      const edge = { x: next.x - current.x, y: next.y - current.y };
+      
+      // Get perpendicular (normal) - rotate 90 degrees
+      const normal = { x: -edge.y, y: edge.x };
+      
+      // Normalize
+      const length = Math.sqrt(normal.x * normal.x + normal.y * normal.y);
+      if (length > 0) {
+        axes.push({ x: normal.x / length, y: normal.y / length });
+      }
+    }
+    
+    return axes;
+  }
+
+  /**
+   * Project polygon onto an axis and return min/max values
+   */
+  private static projectPolygon(polygon: Point[], axis: Point): { min: number; max: number } {
+    let min = Infinity;
+    let max = -Infinity;
+
+    for (const vertex of polygon) {
+      const dot = vertex.x * axis.x + vertex.y * axis.y;
+      min = Math.min(min, dot);
+      max = Math.max(max, dot);
+    }
+
+    return { min, max };
+  }
+
+  /**
+   * Check if two projections overlap
+   */
+  private static overlaps(proj1: { min: number; max: number }, proj2: { min: number; max: number }): boolean {
+    return proj1.max >= proj2.min && proj2.max >= proj1.min;
+  }
+
 }

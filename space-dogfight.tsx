@@ -729,6 +729,8 @@ export default function SpaceDogfight() {
           pilot: { ...unit.pilot, morale: newMorale },
           angle: unit.initialAngle + unit.finalOrientationChange,
         }
+        console.log(unit.id + " " + unit.angle)
+        console.log(getUnitPolygon(unit))
         // Set speed to 1 after One-Eight-Oh maneuver
         if (updatedUnit.plannedManeuver === "one-eight-oh") {
           updatedUnit = {

@@ -1475,14 +1475,12 @@ export function generateAsteroids(
 export function getPointFromDistanceAndAngle(
   startPoint: Point, 
   distance: number, 
-  angleInDegrees: number
+  angleInRadians: number
 ): Point {
-  // Convert degrees to radians
-  const angleInRadians = (angleInDegrees * Math.PI) / 180;
   
   // Calculate the new coordinates
   const newX = startPoint.x + distance * Math.cos(angleInRadians);
-  const newY = startPoint.y - distance * Math.sin(angleInRadians);
+  const newY = startPoint.y + distance * Math.sin(angleInRadians);
   
   return {
     x: newX,
@@ -1494,9 +1492,9 @@ export function getUnitPolygon( unit: Unit): Point[] {
   let unitPolygon: Point[] = []
   let unitPoint: Point = { x: unit.x, y: unit.y }
   let midFront = getPointFromDistanceAndAngle( unitPoint, unit.size/2, unit.angle)
-  let frontRight = getPointFromDistanceAndAngle( midFront, unit.size / 2, unit.angle + 90)
-  let backRight = getPointFromDistanceAndAngle( frontRight, unit.size, unit.angle + 180)
-  let backLeft = getPointFromDistanceAndAngle( backRight, unit.size, unit.angle + 270)
+  let frontRight = getPointFromDistanceAndAngle( midFront, unit.size / 2, unit.angle + ((90 * Math.PI) / 180) )
+  let backRight = getPointFromDistanceAndAngle( frontRight, unit.size, unit.angle + Math.PI)
+  let backLeft = getPointFromDistanceAndAngle( backRight, unit.size, unit.angle + ((270 * Math.PI) / 180) )
   let frontLeft = getPointFromDistanceAndAngle( backLeft, unit.size, unit.angle)
   unitPolygon = [frontLeft, frontRight, backRight, backLeft]
   return unitPolygon
